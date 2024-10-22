@@ -2,13 +2,18 @@ package main
 
 import (
 	"fmt"
+	proto "github.com/DoktorGhost/external-api/src/go/pkg/grpc/clients/api/grpc/protobuf/clients_v1"
 	"github.com/DoktorGhost/golibrary-clients/config"
 	"github.com/DoktorGhost/golibrary-clients/internal/app"
 	"github.com/DoktorGhost/golibrary-clients/internal/delivery/controllers/handlers"
+	deliveryGrpc "github.com/DoktorGhost/golibrary-clients/internal/delivery/grpc/server"
 	"github.com/DoktorGhost/golibrary-clients/internal/delivery/http/server"
 	"github.com/DoktorGhost/platform/logger"
 	"github.com/DoktorGhost/platform/storage/psg"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -36,12 +41,31 @@ func main() {
 		return
 	}
 	log.Info("соединение с БД установлено")
+	defer pgsqlConnector.Close()
 
 	cont := app.Init(pgsqlConnector)
 
 	r := handlers.SetupRoutes(cont.UseCaseProvider)
 
-	//старт сервера
+	//старт grpc сервера
+	lis, err := net.Listen("tcp", ":"+config.LoadConfig().ProviderConfig.Provider_port)
+	if err != nil {
+		log.Fatal("failed to listen: %v", "err", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	userGRPCServer := deliveryGrpc.NewUserGRPCServer(cont.UseCaseProvider.UserUseCase)
+
+	proto.RegisterClientsServiceServer(grpcServer, userGRPCServer)
+	reflection.Register(grpcServer)
+
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatal("failed to serve gRPC:", "err", err)
+		}
+	}()
+
+	//старт http-сервера
 	httpServer := server.NewHttpServer(r, ":8080")
 	httpServer.Serve()
 

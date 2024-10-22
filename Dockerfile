@@ -1,5 +1,5 @@
 # Стадия сборки приложения
-FROM golang:1.22-alpine as app-builder
+FROM golang:1.23-alpine as app-builder
 RUN apk update && apk add --no-cache curl make git
 
 # Рабочая директория для сборки

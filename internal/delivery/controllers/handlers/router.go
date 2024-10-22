@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/DoktorGhost/golibrary-clients/internal/providers"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 func SetupRoutes(provider *providers.UseCaseProvider) *chi.Mux {
