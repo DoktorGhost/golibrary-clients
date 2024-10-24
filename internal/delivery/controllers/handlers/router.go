@@ -10,6 +10,7 @@ func SetupRoutes(provider *providers.UseCaseProvider) *chi.Mux {
 
 	r.Post("/login", handlerLogin(provider))
 	r.Post("/register", handlerAddUser(provider))
+	r.Get("/user/{id}", handlerGetUSerById(provider))
 
 	return r
 }

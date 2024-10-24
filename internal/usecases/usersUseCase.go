@@ -55,7 +55,7 @@ func (uc *UsersUseCase) AddUser(userData entities.RegisterData) (int, error) {
 	return id, nil
 }
 
-// возвращает из таблицы данные о пользователе, если логи и пароль подходят
+// возвращает из таблицы данные о пользователе, если логиn и пароль подходят
 func (uc *UsersUseCase) Login(userData entities.Login) (dao.UserTable, error) {
 	var user dao.UserTable
 	user, err := uc.userService.GetUserByUsername(userData.Username)
@@ -69,6 +69,15 @@ func (uc *UsersUseCase) Login(userData entities.Login) (dao.UserTable, error) {
 	}
 
 	return user, nil
+}
+
+func (uc *UsersUseCase) GetUserById(userID int) (string, error) {
+	username, err := uc.userService.GetUserByID(userID)
+	if err != nil {
+		return "", errors.New("user not found")
+	}
+
+	return username, nil
 }
 
 // вспомогалтельные функции

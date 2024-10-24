@@ -11,6 +11,7 @@ import (
 type UserRepository interface {
 	CreateUser(user dao.UserTable) (int, error)
 	GetUserByUsername(username string) (dao.UserTable, error)
+	GetUserByID(userID int) (string, error)
 }
 
 type UserService struct {
@@ -35,4 +36,12 @@ func (s *UserService) GetUserByUsername(username string) (dao.UserTable, error) 
 		return dao.UserTable{}, err
 	}
 	return user, nil
+}
+
+func (s *UserService) GetUserByID(userID int) (string, error) {
+	username, err := s.repo.GetUserByID(userID)
+	if err != nil {
+		return "", err
+	}
+	return username, nil
 }

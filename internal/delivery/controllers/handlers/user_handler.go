@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/DoktorGhost/golibrary-clients/internal/entities"
 	"github.com/DoktorGhost/golibrary-clients/internal/providers"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
 	"strconv"
@@ -71,5 +73,38 @@ func handlerLogin(useCaseProvider *providers.UseCaseProvider) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(user)
+	}
+}
+
+func handlerGetUSerById(useCaseProvider *providers.UseCaseProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Неправильный метод", http.StatusMethodNotAllowed)
+			return
+		}
+
+		idStr := chi.URLParam(r, "id")
+
+		userID, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Неверный формат ID", http.StatusBadRequest)
+			return
+		}
+
+		username, err := useCaseProvider.UserUseCase.GetUserById(userID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Ошибка получения пользователя: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if username == "" {
+			http.Error(w, fmt.Sprintf("Пользователь не найден: %v", err), http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"username": username})
+
 	}
 }

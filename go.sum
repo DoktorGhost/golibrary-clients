@@ -2,6 +2,8 @@ github.com/DoktorGhost/external-api v0.0.1 h1:JkTP7sVzPmZfGYzRzWwBz/gIReNrGoa9sG
 github.com/DoktorGhost/external-api v0.0.1/go.mod h1:XfMzgu0j6gg7THxv3yR0lN8HZm6rAUlR27lzGevYRO8=
 github.com/DoktorGhost/external-api v0.0.2 h1:FM6CgAvZG3qRId7u/vk+FW1t0eeGb6GOfpUg3qnH//w=
 github.com/DoktorGhost/external-api v0.0.2/go.mod h1:gbOOUT5Danyc+JbYy9EY/m9H2aIFaN8h7sFmFQbSPBk=
+github.com/DoktorGhost/external-api v0.0.3 h1:nEUmQtxAMVT6p9XlNDfZBzNiWDkSXQwtjy0aXbfd+6U=
+github.com/DoktorGhost/external-api v0.0.3/go.mod h1:XfMzgu0j6gg7THxv3yR0lN8HZm6rAUlR27lzGevYRO8=
 github.com/DoktorGhost/platform/logger v0.0.0-20241018125428-e23aa8d84404 h1:d1dCu46Ui2W8MCZfmC1tSFbDCv2y1QPzAtwVZwTsagE=
 github.com/DoktorGhost/platform/logger v0.0.0-20241018125428-e23aa8d84404/go.mod h1:hc6X7gy3E/1WU6sNG3HDDIZKA7u2yUFzovcwUdh6IpI=
 github.com/DoktorGhost/platform/storage v0.0.1 h1:dhbN7smp70hUtnsA1okHE8vB+9Hk+D61KP8bs7+gFaA=

@@ -19,6 +19,7 @@ type config struct {
 
 type ProviderConfig struct {
 	Provider_port string `mapstructure:"PROVIDER_PORT"`
+	Http_port     string `mapstructure:"HTTP_PORT"`
 }
 
 type DBConfig struct {
@@ -39,6 +40,7 @@ func LoadConfig() config {
 		viper.BindEnv("DBConfig.DB_PASS", "DB_PASS")
 
 		viper.BindEnv("ProviderConfig.PROVIDER_PORT", "PROVIDER_PORT")
+		viper.BindEnv("ProviderConfig.HTTP_PORT", "HTTP_PORT")
 
 		if err := viper.Unmarshal(&Config); err != nil {
 			panic(fmt.Errorf("ошибка декодирования конфигурации: %w", err))

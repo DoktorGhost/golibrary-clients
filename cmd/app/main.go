@@ -66,7 +66,7 @@ func main() {
 	}()
 
 	//старт http-сервера
-	httpServer := server.NewHttpServer(r, ":8080")
+	httpServer := server.NewHttpServer(r, ":"+config.LoadConfig().ProviderConfig.Http_port)
 	httpServer.Serve()
 
 	interrupt := make(chan os.Signal, 1)

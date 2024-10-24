@@ -38,3 +38,17 @@ func (s *UsersRepository) GetUserByUsername(username string) (dao.UserTable, err
 	}
 	return result, nil
 }
+
+func (s *UsersRepository) GetUserByID(userID int) (string, error) {
+	var result string
+	query := `SELECT username FROM users WHERE id = $1`
+	err := s.db.QueryRow(context.Background(), query, userID).Scan(&result)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("пользователь с ID %d не найден", userID)
+		}
+		return "", fmt.Errorf("ошибка получения пользователя: %v", err)
+	}
+	return result, nil
+}

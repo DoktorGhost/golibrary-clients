@@ -3,7 +3,7 @@ module github.com/DoktorGhost/golibrary-clients
 go 1.23
 
 require (
-	github.com/DoktorGhost/external-api v0.0.2
+	github.com/DoktorGhost/external-api v0.0.3
 	github.com/DoktorGhost/platform/logger v0.0.0-20241018125428-e23aa8d84404
 	github.com/DoktorGhost/platform/storage v0.0.1
 	github.com/go-chi/chi/v5 v5.1.0
