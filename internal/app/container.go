@@ -3,10 +3,12 @@ package app
 import (
 	"github.com/DoktorGhost/golibrary-clients/internal/providers"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"sync"
 )
 
 var (
 	Container container
+	once      sync.Once
 )
 
 type container struct {
@@ -14,18 +16,19 @@ type container struct {
 }
 
 func Init(db *pgxpool.Pool) container {
-	repositoryProvider := providers.NewRepositoryProvider(db)
-	repositoryProvider.RegisterDependencies()
+	once.Do(func() {
+		repositoryProvider := providers.NewRepositoryProvider(db)
+		repositoryProvider.RegisterDependencies()
 
-	serviceProvider := providers.NewServiceProvider()
-	serviceProvider.RegisterDependencies(repositoryProvider)
+		serviceProvider := providers.NewServiceProvider()
+		serviceProvider.RegisterDependencies(repositoryProvider)
 
-	useCaseProvider := providers.NewUseCaseProvider()
-	useCaseProvider.RegisterDependencies(serviceProvider)
+		useCaseProvider := providers.NewUseCaseProvider()
+		useCaseProvider.RegisterDependencies(serviceProvider)
 
-	Container = container{
-		UseCaseProvider: useCaseProvider,
-	}
-
+		Container = container{
+			UseCaseProvider: useCaseProvider,
+		}
+	})
 	return Container
 }

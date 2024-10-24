@@ -6,7 +6,8 @@ import (
 	"github.com/DoktorGhost/golibrary-clients/config"
 	"github.com/DoktorGhost/golibrary-clients/internal/app"
 	"github.com/DoktorGhost/golibrary-clients/internal/delivery/controllers/handlers"
-	deliveryGrpc "github.com/DoktorGhost/golibrary-clients/internal/delivery/grpc/server"
+	deliveryUC "github.com/DoktorGhost/golibrary-clients/internal/delivery/grpc/grpcUC"
+	deliveryServ "github.com/DoktorGhost/golibrary-clients/internal/delivery/grpc/server"
 	"github.com/DoktorGhost/golibrary-clients/internal/delivery/http/server"
 	"github.com/DoktorGhost/platform/logger"
 	"github.com/DoktorGhost/platform/storage/psg"
@@ -43,9 +44,7 @@ func main() {
 	log.Info("соединение с БД установлено")
 	defer pgsqlConnector.Close()
 
-	cont := app.Init(pgsqlConnector)
-
-	r := handlers.SetupRoutes(cont.UseCaseProvider)
+	r := handlers.SetupRoutes(app.Init(pgsqlConnector).UseCaseProvider)
 
 	//старт grpc сервера
 	lis, err := net.Listen("tcp", ":"+config.LoadConfig().ProviderConfig.Provider_port)
@@ -54,20 +53,20 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	userGRPCServer := deliveryGrpc.NewUserGRPCServer(cont.UseCaseProvider.UserUseCase)
+	userGRPCServer := deliveryUC.NewUserGRPCServer(app.Init(pgsqlConnector).UseCaseProvider.UserUseCase)
 
 	proto.RegisterClientsServiceServer(grpcServer, userGRPCServer)
 	reflection.Register(grpcServer)
 
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatal("failed to serve gRPC:", "err", err)
-		}
-	}()
+	grpcSrv := deliveryServ.NewGRPCServer(lis, grpcServer)
+
+	grpcSrv.Serve()
+	log.Info("Grpc-server started")
 
 	//старт http-сервера
 	httpServer := server.NewHttpServer(r, ":"+config.LoadConfig().ProviderConfig.Http_port)
 	httpServer.Serve()
+	log.Info("http-server started")
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -76,9 +75,12 @@ func main() {
 	case killSignal := <-interrupt:
 		log.Info("Выключение сервера", "signal", killSignal)
 	case err = <-httpServer.Notify():
-		log.Error("Ошибка сервера", "error", err)
+		log.Error("Ошибка HTTP сервера", "error", err)
+	case err = <-grpcSrv.Notify():
+		log.Error("Ошибка GRPC сервера", "error", err)
 	}
 
 	httpServer.Shutdown()
+	grpcSrv.Shutdown()
 
 }

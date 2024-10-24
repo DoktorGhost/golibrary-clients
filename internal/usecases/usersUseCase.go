@@ -6,9 +6,8 @@ import (
 	"github.com/DoktorGhost/golibrary-clients/internal/entities"
 	"github.com/DoktorGhost/golibrary-clients/internal/repositories/postgres/dao"
 	"github.com/DoktorGhost/golibrary-clients/internal/services"
+	"github.com/DoktorGhost/platform/validator"
 	"golang.org/x/crypto/bcrypt"
-	"strings"
-	"unicode"
 )
 
 type UsersUseCase struct {
@@ -28,7 +27,7 @@ func (uc *UsersUseCase) AddUser(userData entities.RegisterData) (int, error) {
 	}
 
 	// Валидация данных пользователя
-	fullName, err := valid(userData.Name, userData.Surname, userData.Patronymic)
+	fullName, err := validator.Validator(userData.Name, userData.Surname, userData.Patronymic)
 	if err != nil {
 		return 0, fmt.Errorf("ошибка валидации данных: %v", err)
 	}
@@ -78,36 +77,6 @@ func (uc *UsersUseCase) GetUserById(userID int) (string, error) {
 	}
 
 	return username, nil
-}
-
-// вспомогалтельные функции
-func validStr(name string) bool {
-	for i, char := range name {
-		// Проверяем, что символ является буквой или дефисом
-		if !unicode.IsLetter(char) && char != '-' {
-			return false
-		}
-
-		// Проверяем, что дефис не в начале или в конце строки
-		if char == '-' && (i == 0 || i == len(name)-1) {
-			return false
-		}
-	}
-	return true
-}
-
-func valid(name, surname, patronymic string) (string, error) {
-	if !validStr(name) {
-		return "", fmt.Errorf("имя не должно содержать цифры или символы")
-	}
-	if !validStr(surname) {
-		return "", fmt.Errorf("фамилия не должна содержать цифры или символы")
-	}
-	if !validStr(patronymic) {
-		return "", fmt.Errorf("отчество не должно содержать цифры или символы")
-	}
-	fullName := strings.TrimSpace(name + " " + surname + " " + patronymic)
-	return fullName, nil
 }
 
 func hashPassword(password string) (string, error) {

@@ -8,6 +8,8 @@ github.com/DoktorGhost/platform/logger v0.0.0-20241018125428-e23aa8d84404 h1:d1d
 github.com/DoktorGhost/platform/logger v0.0.0-20241018125428-e23aa8d84404/go.mod h1:hc6X7gy3E/1WU6sNG3HDDIZKA7u2yUFzovcwUdh6IpI=
 github.com/DoktorGhost/platform/storage v0.0.1 h1:dhbN7smp70hUtnsA1okHE8vB+9Hk+D61KP8bs7+gFaA=
 github.com/DoktorGhost/platform/storage v0.0.1/go.mod h1:k7hb6NpaYg/tSmjKMcAntR1bugI4M9bCecFwWHRa1Gk=
+github.com/DoktorGhost/platform/validator v0.0.1 h1:AQsd4o+qp7bCaSsV9BgNpMhPRH/l0h+dYfCm3HrljN0=
+github.com/DoktorGhost/platform/validator v0.0.1/go.mod h1:6Aj0AT6N/4Xj68MQtrp97geS7UuCq3psWf770bX2xo4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

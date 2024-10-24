@@ -2,60 +2,61 @@ package server
 
 import (
 	"context"
-	proto "github.com/DoktorGhost/external-api/src/go/pkg/grpc/clients/api/grpc/protobuf/clients_v1"
-	"github.com/DoktorGhost/golibrary-clients/internal/entities"
-	"github.com/DoktorGhost/golibrary-clients/internal/usecases"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"net"
+	"time"
+
+	"google.golang.org/grpc"
 )
 
-type UserGRPCServer struct {
-	uc *usecases.UsersUseCase
-	//proto.UnimplementedClientsServiceServer
-	proto.ClientsServiceServer
+const (
+	_defaultShutdownTimeout = 5 * time.Second // Увеличим время для корректного завершения активных соединений
+)
+
+// GRPCServer обертка над grpc.Server для управления его жизненным циклом
+type GRPCServer struct {
+	server *grpc.Server
+	errors chan error
+	lis    net.Listener
 }
 
-func NewUserGRPCServer(uc *usecases.UsersUseCase) *UserGRPCServer {
-	return &UserGRPCServer{uc: uc}
+// NewGRPCServer создаёт новый GRPC сервер
+func NewGRPCServer(lis net.Listener, grpcServer *grpc.Server) *GRPCServer {
+	return &GRPCServer{
+		server: grpcServer,
+		errors: make(chan error, 1),
+		lis:    lis,
+	}
 }
 
-func (s *UserGRPCServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
-	user := entities.RegisterData{
-		Username:   req.Username,
-		Password:   req.Password,
-		Name:       req.Name,
-		Surname:    req.Surname,
-		Patronymic: req.Patronymic,
-	}
-
-	// Вызов метода юзкейса
-	id, err := s.uc.AddUser(user)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add user: %v", err)
-	}
-
-	return &proto.RegisterResponse{Id: int64(id)}, nil
+// Serve запускает сервер в отдельной горутине и записывает ошибку в канал ошибок
+func (s *GRPCServer) Serve() {
+	go func() {
+		s.errors <- s.server.Serve(s.lis)
+		close(s.errors)
+	}()
 }
 
-func (s *UserGRPCServer) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginResponse, error) {
-	loginData := entities.Login{
-		Username: req.Username,
-		Password: req.Password,
-	}
-	user, err := s.uc.Login(loginData)
-	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "login failed: %v", err)
-	}
-
-	return &proto.LoginResponse{Id: int64(user.ID), Username: user.Username, Password: user.PasswordHash, Fullname: user.FullName}, nil
+// Notify возвращает канал для получения ошибок запуска сервера
+func (s *GRPCServer) Notify() <-chan error {
+	return s.errors
 }
 
-func (s *UserGRPCServer) GetUserByID(ctx context.Context, req *proto.UserID) (*proto.Username, error) {
-	id := int(req.Id)
-	username, err := s.uc.GetUserById(id)
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
-	}
+// Shutdown выполняет graceful shutdown сервера, завершает активные соединения в течении timeout
+func (s *GRPCServer) Shutdown() error {
+	ctx, cancel := context.WithTimeout(context.Background(), _defaultShutdownTimeout)
+	defer cancel()
 
-	return &proto.Username{Username: username}, nil
+	done := make(chan struct{})
+	go func() {
+		s.server.GracefulStop()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		s.server.Stop()
+		return ctx.Err()
+	}
 }
