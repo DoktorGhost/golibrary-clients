@@ -11,6 +11,7 @@ import (
 	"github.com/DoktorGhost/golibrary-clients/internal/delivery/http/server"
 	"github.com/DoktorGhost/platform/logger"
 	"github.com/DoktorGhost/platform/storage/psg"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -18,6 +19,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -36,12 +38,19 @@ func main() {
 	psgConfig := config.ConvertToPsgDBConfig(config.LoadConfig().DBConfig)
 
 	// Инициализируем подключение к БД
-	pgsqlConnector, err := psg.InitStorage(psgConfig)
-	if err != nil {
-		log.Error(err.Error())
-		return
+	var pgsqlConnector *pgxpool.Pool
+
+	for i := 0; i < 5; i++ {
+		pgsqlConnector, err = psg.InitStorage(psgConfig)
+		if err != nil {
+			log.Error(err.Error())
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		log.Info("соединение с БД установлено")
+		break
 	}
-	log.Info("соединение с БД установлено")
+
 	defer pgsqlConnector.Close()
 
 	r := handlers.SetupRoutes(app.Init(pgsqlConnector).UseCaseProvider)
